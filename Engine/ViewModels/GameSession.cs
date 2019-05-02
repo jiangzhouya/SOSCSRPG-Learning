@@ -7,11 +7,11 @@ using Engine.Models;
 
 namespace Engine.ViewModels
 {
-    class GameSession
+    public class GameSession
     {
-        internal Player _currentPlayer;
+        private Player _currentPlayer;
 
-        Player CurrentPlayer { get => _currentPlayer; set => _currentPlayer = value; }
+        public Player CurrentPlayer { get => _currentPlayer; set => _currentPlayer = value; }
 
         public GameSession()
         {
