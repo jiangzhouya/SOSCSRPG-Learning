@@ -25,17 +25,34 @@ namespace WPFUI
     {
         private GameSession _gameSession;
 
+        public GameSession GameSession { get => _gameSession; set => _gameSession = value; }
+
         public MainWindow()
         {
             InitializeComponent();
-            _gameSession = new GameSession();
-            DataContext = _gameSession;
+            this.GameSession = new GameSession();
+            DataContext = this.GameSession;
 
         }
 
-        private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
+        private void OnClick_MoveNorth(object sender, RoutedEventArgs e)
         {
-            _gameSession.CurrentPlayer.ExperiencePoints = _gameSession.CurrentPlayer.ExperiencePoints + 10;
+            GameSession.MoveNorth();
+        }
+
+        private void OnClick_MoveSouth(object sender, RoutedEventArgs e)
+        {
+            GameSession.MoveSouth();
+        }
+
+        private void OnClick_MoveWest(object sender, RoutedEventArgs e)
+        {
+            GameSession.MoveWest();
+        }
+
+        private void OnClick_MoveEast(object sender, RoutedEventArgs e)
+        {
+            GameSession.MoveEast();
         }
     }
 }
