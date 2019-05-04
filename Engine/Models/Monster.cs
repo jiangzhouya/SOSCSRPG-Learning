@@ -32,7 +32,8 @@ namespace Engine.Models
         public Monster(string name, string imageName, int maximumHitPoints, int hitPoints, int rewardExperiencePoints, int rewardGold)
         {
             Name = name;
-            ImageName = string.Format("/Engine;component/Images/Monster/{0}", imageName);
+            
+            ImageName = string.Format(@"E:\C#Project\SOSCSRPG\Engine\Images\Monsters\{0}", imageName);// 不知道为什么不加载图片，所以就直接用路径来索引资源
             MaximumHitPoints = maximumHitPoints;
             HitPoints = hitPoints;
             RewardExperiencePoints = rewardExperiencePoints;
