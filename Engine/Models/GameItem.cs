@@ -22,5 +22,9 @@ namespace Engine.Models
             this.Name = name;
             this.Price = price;
         }
+        public GameItem Clone()
+        {
+            return new GameItem(ItemTypeID, Name, Price);
+        }
     }
 }
