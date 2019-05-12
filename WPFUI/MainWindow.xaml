@@ -3,9 +3,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:Engine.ViewModels;assembly=Engine"
         xmlns:local="clr-namespace:WPFUI"
+        d:DataContext="{d:DesignInstance viewModels:GameSession}"
         mc:Ignorable="d"
-        FontSize="11pt"
+        FontSize="10pt"
         Title="Scott's Awesome Game" Height="768" Width="1024">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibility"/>
@@ -46,8 +48,8 @@
             <Label Grid.Row="0" Grid.Column="1" Content="{Binding CurrentPlayer.Name}"/>
             <Label Grid.Row="1" Grid.Column="0" Content="Class:"/>
             <Label Grid.Row="1" Grid.Column="1" Content="{Binding CurrentPlayer.CharacterClass}"/>
-            <Label Grid.Row="2" Grid.Column="0" Content="HitPoints:"/>
-            <Label Grid.Row="2" Grid.Column="1" Content="{Binding CurrentPlayer.HitPoints}"/>
+            <Label Grid.Row="2" Grid.Column="0" Content="Hit Points:"/>
+            <Label Grid.Row="2" Grid.Column="1" Content="{Binding CurrentPlayer.CurrentHitPoints}"/>
             <Label Grid.Row="3" Grid.Column="0" Content="Gold:"/>
             <Label Grid.Row="3" Grid.Column="1" Content="{Binding CurrentPlayer.Gold}"/>
             <Label Grid.Row="4" Grid.Column="0" Content="XP:"/>
@@ -108,7 +110,7 @@
                     <Image Grid.Row="1" HorizontalAlignment="Center" Height="125" Width="125" Source="{Binding CurrentMonster.ImageName}"/>
                     <StackPanel Grid.Row="2" Visibility="{Binding HasMonster, Converter={StaticResource BooleanToVisibility}}" HorizontalAlignment="Center" Orientation="Horizontal">
                         <TextBlock>Current Hit Points:</TextBlock>
-                        <TextBlock Text="{Binding CurrentMonster.HitPoints}"/>
+                        <TextBlock Text="{Binding CurrentMonster.CurrentHitPoints}"/>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -118,10 +120,11 @@
         <Grid Grid.Row="2" Grid.Column="0" Background="BurlyWood">
             <TabControl>
                 <TabItem Header="Inventory">
-                    <DataGrid ItemsSource="{Binding CurrentPlayer.Inventory}" AutoGenerateColumns="False" HeadersVisibility="Column">
+                    <DataGrid ItemsSource="{Binding CurrentPlayer.GroupedInventory}" AutoGenerateColumns="False" HeadersVisibility="Column">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Description" Binding="{Binding Name}" Width="*"/>
-                            <DataGridTextColumn Header="Price" Binding="{Binding Price}" Width="Auto"/>
+                            <DataGridTextColumn Header="Description" Binding="{Binding Item.Name}" Width="*"/>
+                            <DataGridTextColumn Header="Qty" IsReadOnly="True" Width="Auto" Binding="{Binding Quantity}"/>
+                            <DataGridTextColumn Header="Price" Binding="{Binding Item.Price}" Width="Auto"/>
                         </DataGrid.Columns>
 
                     </DataGrid>

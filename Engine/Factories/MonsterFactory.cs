@@ -35,9 +35,11 @@ namespace Engine.Factories
         }
         private static void AddLootItem(Monster monster, int itemID, int percentage)
         {
-            if (RandomNumberGenerator.NumberBetween(1, 100) <= percentage)
+            Random ran = new Random();
+            int rn = ran.Next(100);
+            if (rn <= percentage)
             {
-                monster.Inventory.Add(new ItemQuantity(itemID, 1));
+                monster.AddItemToInventory(ItemFactory.CreateGameItem(itemID));
             }
         }
     }

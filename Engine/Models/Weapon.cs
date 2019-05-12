@@ -14,7 +14,7 @@ namespace Engine.Models
         public int MinimumDamage { get => _minimumDamage; set => _minimumDamage = value; }
         public int MaximumDamage { get => _maximumDamage; set => _maximumDamage = value; }
 
-        public Weapon(int itemTypeID, string name, int price, int minDamage, int maxDamage):base(itemTypeID,name,price)
+        public Weapon(int itemTypeID, string name, int price, int minDamage, int maxDamage):base(itemTypeID,name,price,true)
         {
             this.MinimumDamage= minDamage;
             this.MaximumDamage = maxDamage;

@@ -14,20 +14,21 @@ namespace Engine.ViewModels
     {
         public event EventHandler<GameMessageEventArgs> OnMessageRaised;
         #region Properties
-        private Player _currentPlayer;
         private Location _currentLocation;
-        private World _currentWorld;
         private Monster _currentMonster;
         private Trader _currentTrader;
 
-        public World CurrentWorld { get => _currentWorld; set => _currentWorld = value; }
-        public Player CurrentPlayer { get => _currentPlayer; set => _currentPlayer = value; }
+        public World CurrentWorld { get; set; }
+        public Player CurrentPlayer { get; set; }
+
+
         public Location CurrentLocation
         {
             get { return _currentLocation; }
             set
             {
                 _currentLocation = value;
+
                 OnPropertyChanged(nameof(CurrentLocation));
                 OnPropertyChanged(nameof(HasLocationToNorth));
                 OnPropertyChanged(nameof(HasLocationToSouth));
@@ -56,56 +57,32 @@ namespace Engine.ViewModels
                 if (CurrentMonster != null)
                 {
                     RaiseMessage("");
+                    RaiseMessage($"You see a {CurrentMonster.Name} here!");
                 }
             }
         }
-        public Weapon CurrentWeapon { get; set; }
         public Trader CurrentTrader
         {
             get { return _currentTrader; }
             set
             {
                 _currentTrader = value;
+
                 OnPropertyChanged(nameof(CurrentTrader));
                 OnPropertyChanged(nameof(HasTrader));
             }
         }
-        #region 方向属性
-        public bool HasLocationToNorth
-        {
-            get
-            {
-                return CurrentWorld.LocationAt(CurrentLocation.XCoordinate, CurrentLocation.YCoordinate + 1) != null;
-            }
-        }
-        public bool HasLocationToSouth
-        {
-            get
-            {
-                return CurrentWorld.LocationAt(CurrentLocation.XCoordinate, CurrentLocation.YCoordinate - 1) != null;
-            }
-        }
-        public bool HasLocationToWest
-        {
-            get
-            {
-                return CurrentWorld.LocationAt(CurrentLocation.XCoordinate - 1, CurrentLocation.YCoordinate) != null;
-            }
-        }
-        public bool HasLocationToEast
-        {
-            get
-            {
-                return CurrentWorld.LocationAt(CurrentLocation.XCoordinate + 1, CurrentLocation.YCoordinate) != null;
-            }
-        }
-        #endregion
+        public Weapon CurrentWeapon { get; set; }
 
+        #region 方向属性
+        public bool HasLocationToNorth => CurrentWorld.LocationAt(CurrentLocation.XCoordinate, CurrentLocation.YCoordinate + 1) != null;
+        public bool HasLocationToSouth => CurrentWorld.LocationAt(CurrentLocation.XCoordinate, CurrentLocation.YCoordinate - 1) != null;
+        public bool HasLocationToWest => CurrentWorld.LocationAt(CurrentLocation.XCoordinate - 1, CurrentLocation.YCoordinate) != null;
+        public bool HasLocationToEast => CurrentWorld.LocationAt(CurrentLocation.XCoordinate + 1, CurrentLocation.YCoordinate) != null;
+        #endregion
 
         public bool HasMonster => CurrentMonster != null;
         public bool HasTrader => CurrentTrader != null;
-
-
         #endregion
 
         public GameSession()
@@ -114,7 +91,7 @@ namespace Engine.ViewModels
             {
                 Name = "Scott",
                 CharacterClass = "Fighter",
-                HitPoints = 10,
+                CurrentHitPoints = 100,
                 Gold = 1000000,
                 ExperiencePoints = 0,
                 Level = 1
@@ -124,9 +101,7 @@ namespace Engine.ViewModels
             {
                 CurrentPlayer.AddItemToInventory(ItemFactory.CreateGameItem(1001));
             }
-
             CurrentWorld = WorldFactory.CreateWorld();
-
             CurrentLocation = CurrentWorld.LocationAt(0, 0);
         }
 
@@ -245,11 +220,11 @@ namespace Engine.ViewModels
             }
             else
             {
-                CurrentMonster.HitPoints -= damageToMonster;
+                CurrentMonster.CurrentHitPoints -= damageToMonster;
                 RaiseMessage($"You hit the {CurrentMonster.Name} for {damageToMonster} points.");
             }
             //If monster if killed, collect rewards and loot
-            if (CurrentMonster.HitPoints <= 0)
+            if (CurrentMonster.CurrentHitPoints <= 0)
             {
                 RaiseMessage("");
                 RaiseMessage($"You defeated the {CurrentMonster.Name}!");
@@ -257,20 +232,19 @@ namespace Engine.ViewModels
                 CurrentPlayer.ExperiencePoints += CurrentMonster.RewardExperiencePoints;
                 RaiseMessage($"You recive {CurrentMonster.RewardExperiencePoints} experience points.");
 
-                CurrentPlayer.Gold += CurrentMonster.RewardGold;
-                RaiseMessage($"You receive {CurrentMonster.RewardGold} gold.");
+                CurrentPlayer.Gold += CurrentMonster.Gold;
+                RaiseMessage($"You receive {CurrentMonster.Gold} gold.");
 
-                foreach (ItemQuantity itemQuantity in CurrentMonster.Inventory)
+                foreach (GameItem gameItem in CurrentMonster.Inventory)
                 {
-                    GameItem item = ItemFactory.CreateGameItem(itemQuantity.ItemID);
-                    CurrentPlayer.AddItemToInventory(item);
-                    RaiseMessage($"You receive {itemQuantity.Quantity} {item.Name}.");
+                    CurrentPlayer.AddItemToInventory(gameItem);
+                    RaiseMessage($"You receive one {gameItem.Name}.");
                 }
             }
             else
             {
                 //If monster is still alive, let the monster attack
-                int damageToPlayer = RandomNumberGenerator.NumberBetween(CurrentMonster.MinimumDamage, CurrentMonster.MaxmumDamage);
+                int damageToPlayer = RandomNumberGenerator.NumberBetween(CurrentMonster.MinimumDamage, CurrentMonster.MaximumDamage);
 
                 if (damageToPlayer == 0)
                 {
@@ -278,17 +252,17 @@ namespace Engine.ViewModels
                 }
                 else
                 {
-                    CurrentPlayer.HitPoints -= damageToPlayer;
+                    CurrentPlayer.CurrentHitPoints -= damageToPlayer;
                     RaiseMessage($"The {CurrentMonster.Name} hit you for {damageToPlayer} points.");
                 }
                 //If player is killed, move them back to their home.
-                if (CurrentPlayer.HitPoints <= 0)
+                if (CurrentPlayer.CurrentHitPoints <= 0)
                 {
                     RaiseMessage("胜败乃兵家常事，大侠请重新来过");
                     RaiseMessage($"The {CurrentMonster.Name} killed you.");
 
                     CurrentLocation = CurrentWorld.LocationAt(0, -1);//Player's home
-                    CurrentPlayer.HitPoints = CurrentPlayer.Level * 10;//又复活了，真是的
+                    CurrentPlayer.CurrentHitPoints = CurrentPlayer.Level * 10;//又复活了，真是的
                 }
             }
         }
