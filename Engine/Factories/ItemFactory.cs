@@ -17,6 +17,8 @@ namespace Engine.Factories
             get => _standardGameItems;
             set => _standardGameItems = value;
         }
+
+        //构造函数
         static ItemFactory()
         {
             _standardGameItems = new List<GameItem>();
@@ -37,6 +39,10 @@ namespace Engine.Factories
 
             if (standardItem != null)
             {
+                if(standardItem is Weapon)
+                {
+                    return (standardItem as Weapon).Clone();
+                }
                 return standardItem.Clone();
             }
             return null;

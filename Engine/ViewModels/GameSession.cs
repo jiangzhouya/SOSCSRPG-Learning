@@ -5,17 +5,21 @@ using System.Text;
 using System.Threading.Tasks;
 using Engine.Models;
 using Engine.Factories;
+using Engine.EventArgs;
 
 
 namespace Engine.ViewModels
 {
     public class GameSession : BaseNotificationClass
     {
+        public event EventHandler<GameMessageEventArgs> OnMessageRaised;
+        #region Properties
         private Player _currentPlayer;
         private Location _currentLocation;
         private World _currentWorld;
         private Monster _currentMonster;
 
+        public World CurrentWorld { get => _currentWorld; set => _currentWorld = value; }
         public Player CurrentPlayer { get => _currentPlayer; set => _currentPlayer = value; }
         public Location CurrentLocation
         {
@@ -35,8 +39,25 @@ namespace Engine.ViewModels
             }
 
         }
-        public World CurrentWorld { get => _currentWorld; set => _currentWorld = value; }
+        public Monster CurrentMonster
+        {
+            get { return _currentMonster; }
+            set
+            {
+                _currentMonster = value;
 
+                OnPropertyChanged(nameof(CurrentMonster));
+                OnPropertyChanged(nameof(HasMonster));
+
+                if (CurrentMonster != null)
+                {
+                    RaiseMessage("");
+                }
+            }
+        }
+        public Weapon CurrentWeapon { get; set; }
+
+        #region 方向属性
         public bool HasLocationToNorth
         {
             get
@@ -65,20 +86,11 @@ namespace Engine.ViewModels
                 return CurrentWorld.LocationAt(CurrentLocation.XCoordinate + 1, CurrentLocation.YCoordinate) != null;
             }
         }
+        #endregion
 
-        public Monster CurrentMonster
-        {
-            get { return _currentMonster; }
-            set
-            {
-                _currentMonster = value;
-
-                OnPropertyChanged(nameof(CurrentMonster));
-                OnPropertyChanged(nameof(HasMonster));
-            }
-        }
 
         public bool HasMonster => CurrentMonster != null;
+        #endregion
 
         public GameSession()
         {
@@ -91,26 +103,18 @@ namespace Engine.ViewModels
                 ExperiencePoints = 0,
                 Level = 1
             };
-
-            //CurrentLocation = new Location();
-            //CurrentLocation.Name = "Home";
-            //CurrentLocation.XCoordinate = 0;
-            //CurrentLocation.YCoordinate = -1;
-            //CurrentLocation.Description = "This is your house";
-            //CurrentLocation.ImageName = "/Engine;component/Images/Locations/Home.png";
-
+            //玩家没有武器就给一个
+            if (!CurrentPlayer.Weapons.Any())
+            {
+                CurrentPlayer.AddItemToInventory(ItemFactory.CreateGameItem(1001));
+            }
 
             CurrentWorld = WorldFactory.CreateWorld();
 
             CurrentLocation = CurrentWorld.LocationAt(0, 0);
-
-            //调试用的代码，看看装备界面会不会显示
-            //CurrentPlayer.Inventory.Add(ItemFactory.CreateGameItem(1001));
-            //CurrentPlayer.Inventory.Add(ItemFactory.CreateGameItem(1001));
-            //CurrentPlayer.Inventory.Add(ItemFactory.CreateGameItem(1002));
-
         }
 
+        #region 方向控制
         public void MoveNorth()
         {
             if (HasLocationToNorth)
@@ -141,6 +145,7 @@ namespace Engine.ViewModels
                 CurrentLocation = CurrentWorld.LocationAt(CurrentLocation.XCoordinate + 1, CurrentLocation.YCoordinate);
             }
         }
+        #endregion
         private void GivePlayerQuestsAtLocation()
         {
             foreach (Quest quest in CurrentLocation.QuestAvailableHere)
@@ -151,9 +156,78 @@ namespace Engine.ViewModels
                 }
             }
         }
+
         private void GetMonsterAtLocation()
         {
             CurrentMonster = CurrentLocation.GetMonster();
+        }
+
+        public void AttackCurrentMonster()
+        {
+            if (CurrentWeapon == null)
+            {
+                RaiseMessage("You must select a weapon,to attack");
+                return;
+            }
+            //Determine damage to monster
+            int damageToMonster = RandomNumberGenerator.NumberBetween(CurrentWeapon.MinimumDamage, CurrentWeapon.MaximumDamage);
+            if (damageToMonster == 0)
+            {
+                RaiseMessage($"You missed the {CurrentMonster.Name}.");
+            }
+            else
+            {
+                CurrentMonster.HitPoints -= damageToMonster;
+                RaiseMessage($"You hit the {CurrentMonster.Name} for {damageToMonster} points.");
+            }
+            //If monster if killed, collect rewards and loot
+            if (CurrentMonster.HitPoints <= 0)
+            {
+                RaiseMessage("");
+                RaiseMessage($"You defeated the {CurrentMonster.Name}!");
+
+                CurrentPlayer.ExperiencePoints += CurrentMonster.RewardExperiencePoints;
+                RaiseMessage($"You recive {CurrentMonster.RewardExperiencePoints} experience points.");
+
+                CurrentPlayer.Gold += CurrentMonster.RewardGold;
+                RaiseMessage($"You receive {CurrentMonster.RewardGold} gold.");
+
+                foreach (ItemQuantity itemQuantity in CurrentMonster.Inventory)
+                {
+                    GameItem item = ItemFactory.CreateGameItem(itemQuantity.ItemID);
+                    CurrentPlayer.AddItemToInventory(item);
+                    RaiseMessage($"You receive {itemQuantity.Quantity} {item.Name}.");
+                }
+            }
+            else
+            {
+                //If monster is still alive, let the monster attack
+                int damageToPlayer = RandomNumberGenerator.NumberBetween(CurrentMonster.MinimumDamage, CurrentMonster.MaxmumDamage);
+
+                if (damageToPlayer == 0)
+                {
+                    RaiseMessage("The monster attacks but missed you.");
+                }
+                else
+                {
+                    CurrentPlayer.HitPoints -= damageToPlayer;
+                    RaiseMessage($"The {CurrentMonster.Name} hit you for {damageToPlayer} points.");
+                }
+                //If player is killed, move them back to their home.
+                if(CurrentPlayer.HitPoints<=0)
+                {
+                    RaiseMessage("胜败乃兵家常事，大侠请重新来过");
+                    RaiseMessage($"The {CurrentMonster.Name} killed you.");
+
+                    CurrentLocation = CurrentWorld.LocationAt(0, -1);//Player's home
+                    CurrentPlayer.HitPoints = CurrentPlayer.Level * 10;//又复活了，真是的
+                }
+            }
+        }
+
+        private void RaiseMessage(string message)
+        {
+            OnMessageRaised?.Invoke(this, new GameMessageEventArgs(message));
         }
     }
 
