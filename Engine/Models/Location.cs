@@ -9,19 +9,14 @@ namespace Engine.Models
 {
     public class Location
     {
-        int _xCoordinate;
-        int _yCoordinate;
-        string _name;
-        string _description;
-        string _imageName;
-        public int XCoordinate { get => _xCoordinate; set => _xCoordinate = value; }
-        public int YCoordinate { get => _yCoordinate; set => _yCoordinate = value; }
-        public string Name { get => _name; set => _name = value; }
-        public string Description { get => _description; set => _description = value; }
-        public string ImageName { get => _imageName; set => _imageName = value; }
+        public int XCoordinate { get; }
+        public int YCoordinate { get; }
+        public string Name { get; }
+        public string Description { get; }
+        public string ImageName { get; }
 
-        public List<Quest> QuestAvailableHere { get; set; } = new List<Quest>();
-        public List<MonsterEncounter> MonstersHere { get; set; } = new List<MonsterEncounter>();
+        public List<Quest> QuestAvailableHere { get; } = new List<Quest>();
+        public List<MonsterEncounter> MonstersHere { get;} = new List<MonsterEncounter>();
         public Trader TraderHere { get; set; }
 
         public Location(int xCoordinate, int yCoordinate, string name, string description, string imageName)

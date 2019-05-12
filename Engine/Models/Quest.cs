@@ -8,21 +8,17 @@ namespace Engine.Models
 {
     public class Quest
     {
-        private int _iD;
-        private string _name;
-        private string _Description;
+        public int ID { get; }
+        public string Name { get ; }
+        public string Description { get; }
 
-        public int ID { get => _iD; set => _iD = value; }
-        public string Name { get => _name; set => _name = value; }
-        public string Description { get => _Description; set => _Description = value; }
+        public List<ItemQuantity> ItemsToComplete { get; }
 
-        public List<ItemQuantity> ItemsToComplete { get; set; }
+        public int RewardExperiencePoints { get; }
+        public int RewardGold { get; }
+        public List<ItemQuantity> RewardItems { get; }
 
-        public int RewardExperiencePoints { get; set; }
-        public int RewardGold { get; set; }
-        public List<ItemQuantity> RewardItems { get; set; }
-
-        public Quest(int id, string name,string description, List<ItemQuantity> itemsToComplete, int rewardExperiencePoints, int rewardGold, List<ItemQuantity> rewardItems)
+        public Quest(int id, string name, string description, List<ItemQuantity> itemsToComplete, int rewardExperiencePoints, int rewardGold, List<ItemQuantity> rewardItems)
         {
             ID = id;
             Name = name;
